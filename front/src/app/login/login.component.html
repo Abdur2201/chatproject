@@ -1,0 +1,23 @@
+<div class="login-container">
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <h2>Login</h2>
+      <div>
+        <label for="email">Email ID</label>
+        <input type="email" id="email" formControlName="email" placeholder="Enter your registered Mail ID">
+      </div>
+  
+      <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" placeholder="Enter your password">
+      </div>
+       <br>
+      <div>
+        <input type="checkbox" formControlName="rememberme">Remember Me 
+      </div>
+      <button type="submit">Login</button><br>
+  
+      <a routerLink="/signup">New user? Sign-Up</a><br>
+  <a href="#">Forgot password?</a><br>
+    </form>
+  
+  </div>
