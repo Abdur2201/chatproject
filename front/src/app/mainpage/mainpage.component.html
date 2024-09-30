@@ -1,0 +1,23 @@
+<!-- <div class="chatbot-container">
+    <button class="chatbot-button" (click)="openChatbot()">
+     <img src="assets/download.png" alt="Robot Logo" class="robot-logo" /> -->
+      <!-- <img src="src/assets/download.png" alt="Robot Logo" class="robot-logo" />
+      Ask queries here, our Bot is ready to help
+      </button>
+    
+  </div>
+<div *ngIf="isChatboxOpen">
+  <app-chatbox></app-chatbox>
+</div> --> 
+
+
+<!-- mainpage.component.html -->
+<div class="chatbot-container">
+  <button class="chatbot-button" (click)="openChatbot()">
+    <img src="src/assets/download.png" alt="Robot Logo" class="robot-logo" />
+    Ask queries here, our Bot is ready to help
+  </button>
+</div>
+
+<!-- The chatbox is conditionally displayed at the bottom-right corner -->
+<app-chatbox *ngIf="isChatboxOpen"></app-chatbox>

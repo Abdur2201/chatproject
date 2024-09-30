@@ -1,0 +1,39 @@
+<!-- <div class="chatbox" *ngIf="ischatboxopen">
+    
+  <div class="chatbox-header"></div>
+    <h3>Chatbot</h3>
+    <button class="close-button" (click)="togglechat()">X</button>
+  </div>
+
+  <div class="chatbox-body">
+    <div *ngFor="let message of messages">
+      <p>{{message.text}}</p>
+    </div>
+  </div>
+
+  <div class="chatbox-footer">
+    <form [formGroup]="chatForm" (ngSubmit)="sendMessage()">
+      <input formControlName="usermessage" placeholder="Type your message here">
+      <button type="submit">Send</button>
+    </form>
+  </div> -->
+
+
+  <!-- chatbox.component.html -->
+<div class="chatbox-popup" >
+  <div class="chatbox-body">
+    <div *ngFor="let message of messages">
+      <p [ngClass]="{'user-message':message.type === 'user', 'bot-message': message.type === 'bot'}">
+        {{ message.text }}
+      </p>
+    </div>
+  </div>
+
+  <div class="chatbox-footer">
+    <form [formGroup]="chatForm" (ngSubmit)="sendMessage()">
+      <input formControlName="usermessage" placeholder="Type your message here" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</div>
+
