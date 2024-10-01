@@ -2,93 +2,95 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import {authroutes} from './authroutes.js'; // Note the .js extension for ES modules
+import { authroutes } from './authroutes.js';
 import dotenv from 'dotenv';
 import { WebhookClient } from 'dialogflow-fulfillment';
 
 dotenv.config();
-const app=express();
 
+const app = express();
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/',(req,res)=>{
-    res.send("Welcome to FSL Chatbot")
+// Database connection
+mongoose.connect('mongodb://localhost:27017/chatbotUsers', {
+
 })
-mongoose.connect('mongodb://localhost:27017/chatbotUsers',{
-    
-}).then(()=>{
+  .then(() => {
     console.log('Connected to MongoDB');
-}).catch((error)=>{0
-    console.log('Error connecting',error)
-}); 
+  })
+  .catch((error) => {
+    console.log('Error connecting to MongoDB:', error);
+  });
 
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.send("Welcome to FSL Chatbot");
+});
+
+// Webhook endpoint for Dialogflow
 app.post('/webhook', (req, res) => {
+  const agent = new WebhookClient({ request: req, response: res });
 
-    const agent = new WebhookClient({ request: req, response: res });
-    res.send('Webhook endpoint is ready. Use POST to send data.');
-    console.log("webhook received",req.body)
+  console.log("Webhook received", req.body);
 
-  // Function to handle Track Service intent
+  // Intent handlers
   function handleTrackService(agent) {
-      const trackingNumber = agent.parameters.tracking_number; // Adjust parameter name to match Dialogflow
-      agent.add(`Your cargo with tracking number ${trackingNumber} is in transit.`);
+    const trackingNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
+    agent.add(`Your cargo with tracking number ${trackingNumber} is in transit.`);
   }
 
-  // Function to handle Download Receipt intent
   function handleDownloadReceipt(agent) {
-      const orderNumber = agent.parameters.order_number; // Adjust parameter name to match Dialogflow
-      agent.add(`Here is the download link for order number ${orderNumber}: https://your-domain.com/receipt/${orderNumber}`);
+    const orderNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
+    agent.add(`Here is the download link for order number ${orderNumber}: https://your-domain.com/receipt/${orderNumber}`);
   }
 
-  // Function to handle Calculate Cost intent
   function handleCalculateCost(agent) {
-      const source = agent.parameters['source-location'];
-      const destination = agent.parameters['destination-location'];
-      const weight = agent.parameters['weight'];
+    const source = agent.parameters['Sourcename'];
+    const destination = agent.parameters['Destname'];
+    const weight = 75
 
-      // Simple calculation logic for demo
-      const estimatedCost = calculateShippingCost(source, destination, weight);
-      agent.add(`The estimated cost to ship from ${source} to ${destination} for a weight of ${weight} kg is $${estimatedCost}.`);
+    // Simple calculation logic for demo
+    const estimatedCost = calculateShippingCost(source, destination, weight);
+    agent.add(`The estimated cost to ship from ${source} to ${destination} for a weight of ${weight} kg is $${estimatedCost}.`);
   }
 
-  // Function to handle Other Queries intent
   function handleOtherQueries(agent) {
-      const query = agent.parameters.other_query; // Adjust parameter name to match Dialogflow
-      agent.add(`For "${query}", please contact our customer support for further assistance.`);
+    const query = agent.parameters.UserId; // Parameter name from Dialogflow
+    agent.add(`For "${query}", please contact our customer support for further assistance.`);
   }
 
   function calculateShippingCost(source, destination, weight) {
-      const baseRate = 5;
-      const distanceFactor = 2;
-      const weightFactor = 1.5;
+    const baseRate = 5;
+    const distanceFactor = 2;
+    const weightFactor = 1.5;
 
-      const distanceCost = baseRate * distanceFactor;  
-      const weightCost = weight * weightFactor;
+    const distanceCost = baseRate * distanceFactor;
+    const weightCost = weight * weightFactor;
 
-      return distanceCost + weightCost;
+    return distanceCost + weightCost;
   }
 
-  // Map Dialogflow intent names 
+  // Map Dialogflow intent names to the handlers
   let intentMap = new Map();
-  intentMap.set('Trackservice', handleTrackService);  // intent name in Dialogflow
+  intentMap.set('Trackservice', handleTrackService);
   intentMap.set('DownloadReceipt', handleDownloadReceipt);
   intentMap.set('calculation_data', handleCalculateCost);
   intentMap.set('Others', handleOtherQueries);
 
-  // Handle the request from Dialogflow
+  // Handle the request using the intent map
   agent.handleRequest(intentMap);
 });
 
-//routing to authroutes
-app.use('/auth',authroutes);
+// Routing to authroutes
+app.use('/auth', authroutes);
 
-//starting port
-const port=process.env.PORT||3000;
-app.listen(port,()=>{
-    console.log(`Server running on ${port}`);
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
 
@@ -143,8 +145,6 @@ app.listen(port,()=>{
 
 
 
-
-
 // console.log("Using API Key:", apiKey);
 // const openai=new OpenAI({
 //     apiKey:apiKey
@@ -167,3 +167,36 @@ app.listen(port,()=>{
 //     res.status(500).send('Error processing your request.');
 //   }
 // });
+
+
+
+
+
+
+
+
+
+
+
+// try {
+//     const responses = await sessionClient.detectIntent(request);
+//     const botReply = responses[0].queryResult.fulfillmentText;
+
+//     res.status(200).json({ botMessage: botReply });
+//   } catch (error) {
+//     console.error('Error in Dialogflow:', error);
+//     res.status(500).json({ message: 'An error occurred while processing your message.' });
+//   }
+//     try {
+//         const userMessage = req.body.userMessage;
+//         if (!userMessage) {
+//           return res.status(400).json({ botMessage: 'User message is missing' });
+//         }
+        
+//         // Replace this logic with your Dialogflow or chatbot response logic.
+//         const botReply = `You said: ${userMessage}`;
+//         res.status(200).json({ botMessage: botReply });
+//       } catch (error) {
+//         console.error('Error in /webhook:', error);
+//         res.status(500).json({ message: 'An error occurred on the server.' });
+//       }
