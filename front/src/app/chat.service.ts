@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { response } from 'express';
 
 @Injectable({
   providedIn: 'root'
@@ -10,10 +11,19 @@ export class ChatService
     // private socket: WebSocket;
     private apiUrl='http://localhost:3000/webhook'
     constructor(private http:HttpClient) {}
-    sendMessage(message: string): Observable<{ botMessage:string}> {
-        return this.http.post<{ botMessage: string }>(this.apiUrl, { userMessage: message });
+    sendMessage(data:any): Observable<any>
+    { 
+      
+        const headers=new HttpHeaders({'Content-Type':'application/json'}); 
+        return this.http.post(this.apiUrl,data,{headers});
       }
-  }
+}
+
+
+
+
+
+
     // // Method to send a message to the WebSocket server
     // sendMessage(message: string): void 
     // {
