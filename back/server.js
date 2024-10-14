@@ -4,20 +4,29 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { authroutes } from './authroutes.js';
 import dotenv from 'dotenv';
-import { WebhookClient } from 'dialogflow-fulfillment';
+import   { sendMessageToPythonChatbot } from './chat.service.js';
+
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
+
+// app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Database connection
 mongoose.connect('mongodb://localhost:27017/chatbotUsers', {
-
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
   .then(() => {
     console.log('Connected to MongoDB');
@@ -31,59 +40,20 @@ app.get('/', (req, res) => {
   res.send("Welcome to FSL Chatbot");
 });
 
-// Webhook endpoint for Dialogflow
-app.post('/webhook', (req, res) => {
-  const agent = new WebhookClient({ request: req, response: res });
-
-  console.log("Webhook received", req.body);
-
-  // Intent handlers
-  function handleTrackService(agent) {
-    const trackingNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
-    agent.add(`Your cargo with tracking number ${trackingNumber} is in transit.`);
+app.post('/api/chat', async (req, res) => {
+  const userMessage = req.body.message;
+  try {
+    const chatbotResponse = await sendMessageToPythonChatbot(userMessage);
+    res.json({ response: chatbotResponse });
+  } catch (error) {
+    console.error('Error in /api/chat:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  function handleDownloadReceipt(agent) {
-    const orderNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
-    agent.add(`Here is the download link for order number ${orderNumber}: https://your-domain.com/receipt/${orderNumber}`);
-  }
-
-  function handleCalculateCost(agent) {
-    const source = agent.parameters['Sourcename'];
-    const destination = agent.parameters['Destname'];
-    const weight = 75
-
-    // Simple calculation logic for demo
-    const estimatedCost = calculateShippingCost(source, destination, weight);
-    agent.add(`The estimated cost to ship from ${source} to ${destination} for a weight of ${weight} kg is $${estimatedCost}.`);
-  }
-
-  function handleOtherQueries(agent) {
-    const query = agent.parameters.UserId; // Parameter name from Dialogflow
-    agent.add(`For "${query}", please contact our customer support for further assistance.`);
-  }
-
-  function calculateShippingCost(source, destination, weight) {
-    const baseRate = 5;
-    const distanceFactor = 2;
-    const weightFactor = 1.5;
-
-    const distanceCost = baseRate * distanceFactor;
-    const weightCost = weight * weightFactor;
-
-    return distanceCost + weightCost;
-  }
-
-  // Map Dialogflow intent names to the handlers
-  let intentMap = new Map();
-  intentMap.set('Trackservice', handleTrackService);
-  intentMap.set('DownloadReceipt', handleDownloadReceipt);
-  intentMap.set('calculation_data', handleCalculateCost);
-  intentMap.set('Others', handleOtherQueries);
-
-  // Handle the request using the intent map
-  agent.handleRequest(intentMap);
+  // const userMessage = req.body.message;
+  // const chatbotResponse = await sendMessageToPythonChatbot(userMessage);
+  // res.json({ response: chatbotResponse });
 });
+
 
 // Routing to authroutes
 app.use('/auth', authroutes);
@@ -102,6 +72,117 @@ app.listen(port, () => {
 
 
 
+
+//import { WebhookClient } from 'dialogflow-fulfillment';
+
+// app.post('/api/chat', (req, res) => {
+
+//   console.log('Received message:', req.body.text);
+//   const agent = new WebhookClient({ request: req, response: res });
+
+//   console.log("Webhook received", req.body);
+
+//   // Intent handlers
+//   function handleTrackService(agent) {
+//     const trackingNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
+//     agent.add(`Your cargo with tracking number ${trackingNumber} is in transit.`);
+//   }
+
+//   function handleDownloadReceipt(agent) {
+//     const orderNumber = agent.parameters.trackingId; // Parameter name from Dialogflow
+//     agent.add(`Here is the download link for order number ${orderNumber}: https://your-domain.com/receipt/${orderNumber}`);
+//   }
+
+//   function handleCalculateCost(agent) {
+//     const source = agent.parameters['Sourcename'];
+//     const destination = agent.parameters['Destname'];
+//     const weight = 75
+
+//     // Simple calculation logic for demo
+//     const estimatedCost = calculateShippingCost(source, destination, weight);
+//     agent.add(`The estimated cost to ship from ${source} to ${destination} for a weight of ${weight} kg is $${estimatedCost}.`);
+//   }
+
+//   function handleOtherQueries(agent) {
+//     const query = agent.parameters.UserId; // Parameter name from Dialogflow
+//     agent.add(`For "${query}", please contact our customer support for further assistance.`);
+//   }
+
+//   function calculateShippingCost(source, destination, weight) {
+//     const baseRate = 5;
+//     const distanceFactor = 2;
+//     const weightFactor = 1.5;
+
+//     const distanceCost = baseRate * distanceFactor;
+//     const weightCost = weight * weightFactor;
+
+//     return distanceCost + weightCost;
+//   }
+
+//   // Map Dialogflow intent names to the handlers
+//   let intentMap = new Map();
+//   intentMap.set('Trackservice', handleTrackService);
+//   intentMap.set('DownloadReceipt', handleDownloadReceipt);
+//   intentMap.set('calculation_data', handleCalculateCost);
+//   intentMap.set('Others', handleOtherQueries);
+
+//   // Handle the request using the intent map
+//   agent.handleRequest(intentMap);
+  
+// });
+
+
+
+
+
+
+
+// app.post('/chat', (req, res) => {
+//   const userMessage = req.body.message.toLowerCase();
+
+//   let botResponse = "";
+
+//   // Simple keyword matching for responses
+//   if (userMessage.includes("track")) {
+//     botResponse = "Please provide your tracking number, and I'll let you know the status.";
+//   } else if (userMessage.includes("receipt")) {
+//     botResponse = "To download your receipt, please provide your order number.";
+//   } else if (userMessage.includes("cost")) {
+//     botResponse = "For cost calculation, provide the source, destination, and weight.";
+//   } else {
+//     botResponse = "I'm here to assist you. Could you please provide more details or ask another question?";
+//   }
+
+//   res.json({ response: botResponse });
+// });
+
+// // Webhook endpoint for Dialogflow
+// app.post('/webhook', (req, res) => {
+//   
+// });
+
+
+
+
+
+
+// const userMessage = req.body.text;
+
+  // // Logic to determine the bot's response
+  // let botResponse;
+
+  // if (userMessage.includes("track")) {
+  //   botResponse = {
+  //     text: "What would you like to do?",
+  //     buttons: ["Track Service", "Download Receipt", "Calculate Shipping"]
+  //   };
+  // } else {
+  //   botResponse = {
+  //     text: "I'm not sure about that. Can you try asking something else?"
+  //   };
+  // }
+
+  // res.json({ botMessage });
 
 
 // const wss=new Websocket.Server({port:8080})

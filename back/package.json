@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@google-cloud/dialogflow": "^6.8.0",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "dialogflow-fulfillment": "^0.6.1",

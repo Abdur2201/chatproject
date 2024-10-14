@@ -22,12 +22,6 @@ export class ChatboxComponent
   }
   
 
-  // ngOnInit(): void
-  // {
-  //   this.chatservice.onMessage((botmessage:string)=>{
-  //     this.messages.push({ text: botmessage,type:'bot'});
-  //   });
-  // }
   sendMessage() 
   {
     if (this.chatForm.valid) 
@@ -46,3 +40,33 @@ export class ChatboxComponent
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // ngOnInit(): void
+  // {
+  //   this.chatservice.onMessage((botmessage:string)=>{
+  //     this.messages.push({ text: botmessage,type:'bot'});
+  //   });
+
+  // }
